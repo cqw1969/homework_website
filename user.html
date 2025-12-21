@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线商城 - 个人中心</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><i class="fas fa-shopping-bag"></i> 在线商城</h1>
+                <div class="student-info">学号：20230001 | 姓名：张三</div>
+            </div>
+            <nav class="navbar">
+                <a href="index.html"><i class="fas fa-home"></i> 首页</a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i> 购物车</a>
+                <a href="user.html" class="active"><i class="fas fa-user"></i> 个人中心</a>
+                <a href="login.html" id="login-btn"><i class="fas fa-sign-in-alt"></i> 登录</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container user-container">
+        <div class="user-sidebar">
+            <div class="user-profile">
+                <div class="avatar">
+                    <i class="fas fa-user-circle fa-4x"></i>
+                </div>
+                <h2 id="user-name">访客</h2>
+                <p id="user-email">请先登录</p>
+            </div>
+            
+            <nav class="user-menu">
+                <a href="user.html" class="active"><i class="fas fa-user"></i> 个人资料</a>
+                <a href="#"><i class="fas fa-box"></i> 我的订单</a>
+                <a href="#"><i class="fas fa-heart"></i> 我的收藏</a>
+                <a href="#"><i class="fas fa-cog"></i> 账户设置</a>
+                <a href="#"><i class="fas fa-shield-alt"></i> 安全中心</a>
+                <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> 退出登录</a>
+            </nav>
+        </div>
+        
+        <div class="user-content">
+            <h1><i class="fas fa-id-card"></i> 个人中心</h1>
+            
+            <div class="user-info-card">
+                <h2><i class="fas fa-info-circle"></i> 基本信息</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>用户名</label>
+                        <p id="info-username">未登录</p>
+                    </div>
+                    <div class="info-item">
+                        <label>邮箱</label>
+                        <p id="info-email">未登录</p>
+                    </div>
+                    <div class="info-item">
+                        <label>注册时间</label>
+                        <p id="info-reg-date">2023-11-01</p>
+                    </div>
+                    <div class="info-item">
+                        <label>会员等级</label>
+                        <p id="info-level">普通会员</p>
+                    </div>
+                </div>
+                <button class="btn btn-edit"><i class="fas fa-edit"></i> 编辑资料</button>
+            </div>
+            
+            <div class="recent-orders">
+                <h2><i class="fas fa-history"></i> 最近订单</h2>
+                <div class="orders-list" id="orders-list">
+                    <div class="order-empty">
+                        <i class="fas fa-box-open fa-2x"></i>
+                        <p>暂无订单记录</p>
+                        <a href="index.html" class="btn">去购物</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="system-info">
+                <h2><i class="fas fa-laptop-code"></i> 系统信息</h2>
+                <p>这是一个使用HTML5、CSS3、JavaScript实现的在线商城系统。</p>
+                <p>实现了用户注册、登录、商品浏览、购物车、个人中心等基本功能。</p>
+                <p>使用了localStorage进行数据存储，模拟了前后端交互。</p>
+                <div class="tech-tags">
+                    <span class="tech-tag">HTML5</span>
+                    <span class="tech-tag">CSS3</span>
+                    <span class="tech-tag">JavaScript</span>
+                    <span class="tech-tag">localStorage</span>
+                    <span class="tech-tag">响应式设计</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2023 在线商城 - 大作业项目</p>
+            <p>学号：20230001 | 姓名：张三</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // 检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (currentUser) {
+                document.getElementById('user-name').textContent = currentUser.username;
+                document.getElementById('user-email').textContent = currentUser.email;
+                document.getElementById('info-username').textContent = currentUser.username;
+                document.getElementById('info-email').textContent = currentUser.email;
+                document.getElementById('login-btn').style.display = 'none';
+            } else {
+                document.getElementById('logout-btn').style.display = 'none';
+            }
+            
+            // 退出登录
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                localStorage.removeItem('currentUser');
+                alert('已退出登录');
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+</body>
+</html>

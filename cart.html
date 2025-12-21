@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线商城 - 购物车</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><i class="fas fa-shopping-bag"></i> 在线商城</h1>
+                <div class="student-info">学号：20230001 | 姓名：张三</div>
+            </div>
+            <nav class="navbar">
+                <a href="index.html"><i class="fas fa-home"></i> 首页</a>
+                <a href="cart.html" class="active"><i class="fas fa-shopping-cart"></i> 购物车</a>
+                <a href="user.html"><i class="fas fa-user"></i> 个人中心</a>
+                <a href="login.html" id="login-btn"><i class="fas fa-sign-in-alt"></i> 登录</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container cart-container">
+        <h1><i class="fas fa-shopping-cart"></i> 我的购物车</h1>
+        
+        <div class="cart-content">
+            <div class="cart-items" id="cart-items">
+                <!-- 购物车商品通过JS动态加载 -->
+                <div class="cart-empty" id="cart-empty">
+                    <i class="fas fa-shopping-cart fa-3x"></i>
+                    <h3>购物车还是空的</h3>
+                    <p>快去挑选心仪的商品吧！</p>
+                    <a href="index.html" class="btn">去逛逛</a>
+                </div>
+            </div>
+            
+            <div class="cart-summary">
+                <h2><i class="fas fa-receipt"></i> 订单摘要</h2>
+                <div class="summary-details">
+                    <div class="summary-row">
+                        <span>商品总价</span>
+                        <span id="subtotal">¥0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>运费</span>
+                        <span id="shipping">¥0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>优惠</span>
+                        <span id="discount">-¥0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <strong>总计</strong>
+                        <strong id="total">¥0.00</strong>
+                    </div>
+                </div>
+                
+                <button class="btn btn-checkout" id="checkout-btn">
+                    <i class="fas fa-credit-card"></i> 去结算
+                </button>
+                
+                <div class="continue-shopping">
+                    <a href="index.html"><i class="fas fa-arrow-left"></i> 继续购物</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2023 在线商城 - 大作业项目</p>
+            <p>学号：20230001 | 姓名：张三</p>
+        </div>
+    </footer>
+
+    <script src="js/cart.js"></script>
+</body>
+</html>

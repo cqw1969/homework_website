@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线商城 - 首页</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><i class="fas fa-shopping-bag"></i> 在线商城</h1>
+                <div class="student-info">学号：20230001 | 姓名：张三</div>
+            </div>
+            <nav class="navbar">
+                <a href="index.html" class="active"><i class="fas fa-home"></i> 首页</a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i> 购物车</a>
+                <a href="user.html"><i class="fas fa-user"></i> 个人中心</a>
+                <a href="login.html" id="login-btn"><i class="fas fa-sign-in-alt"></i> 登录</a>
+                <a href="register.html" id="register-btn"><i class="fas fa-user-plus"></i> 注册</a>
+            </nav>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索商品...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 轮播图 -->
+    <section class="banner">
+        <div class="slides">
+            <div class="slide active">
+                <div class="slide-content">
+                    <h2>夏季大促</h2>
+                    <p>全场商品5折起</p>
+                    <a href="#" class="btn">立即购买</a>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="slide-content">
+                    <h2>新品上市</h2>
+                    <p>最新科技产品</p>
+                    <a href="#" class="btn">查看详情</a>
+                </div>
+            </div>
+        </div>
+        <div class="slide-controls">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+        </div>
+    </section>
+
+    <!-- 商品分类 -->
+    <section class="categories container">
+        <h2><i class="fas fa-list"></i> 商品分类</h2>
+        <div class="category-list">
+            <div class="category" data-category="electronics">电子产品</div>
+            <div class="category" data-category="clothing">服装服饰</div>
+            <div class="category" data-category="books">图书音像</div>
+            <div class="category" data-category="food">食品饮料</div>
+        </div>
+    </section>
+
+    <!-- 商品列表 -->
+    <main class="container">
+        <h2><i class="fas fa-star"></i> 推荐商品</h2>
+        <div class="product-grid" id="product-list">
+            <!-- 商品将通过JS动态加载 -->
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2023 在线商城 - 大作业项目</p>
+            <p>学号：20230001 | 姓名：张三 | 专业：计算机科学与技术</p>
+            <div class="footer-links">
+                <a href="#"><i class="fab fa-github"></i> GitHub</a>
+                <a href="#"><i class="fas fa-question-circle"></i> 帮助中心</a>
+                <a href="#"><i class="fas fa-phone"></i> 联系我们</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

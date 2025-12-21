@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线商城 - 商品详情</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><i class="fas fa-shopping-bag"></i> 在线商城</h1>
+                <div class="student-info">学号：20230001 | 姓名：张三</div>
+            </div>
+            <nav class="navbar">
+                <a href="index.html"><i class="fas fa-home"></i> 首页</a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i> 购物车</a>
+                <a href="user.html"><i class="fas fa-user"></i> 个人中心</a>
+                <a href="login.html" id="login-btn"><i class="fas fa-sign-in-alt"></i> 登录</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 商品详情 -->
+    <main class="container product-detail">
+        <div class="breadcrumb">
+            <a href="index.html">首页</a> &gt; 
+            <a href="#" class="category-link">电子产品</a> &gt; 
+            <span id="product-name">商品详情</span>
+        </div>
+        
+        <div class="product-content">
+            <div class="product-images">
+                <div class="main-image">
+                    <img src="https://via.placeholder.com/400x400" alt="商品主图" id="main-img">
+                </div>
+                <div class="thumbnail-images">
+                    <img src="https://via.placeholder.com/80x80" alt="缩略图1" class="thumbnail">
+                    <img src="https://via.placeholder.com/80x80" alt="缩略图2" class="thumbnail">
+                    <img src="https://via.placeholder.com/80x80" alt="缩略图3" class="thumbnail">
+                </div>
+            </div>
+            
+            <div class="product-info">
+                <h1 id="detail-product-name">智能手机 X1</h1>
+                <div class="product-rating">
+                    <span class="stars">★★★★★</span>
+                    <span class="rating-count">(1289条评价)</span>
+                </div>
+                <div class="product-price">
+                    <span class="current-price" id="detail-price">¥2999.00</span>
+                    <span class="original-price">¥3999.00</span>
+                    <span class="discount">7.5折</span>
+                </div>
+                
+                <div class="product-specs">
+                    <h3><i class="fas fa-info-circle"></i> 商品规格</h3>
+                    <ul>
+                        <li><strong>品牌：</strong><span id="brand">XYZ</span></li>
+                        <li><strong>型号：</strong><span id="model">X1 Pro</span></li>
+                        <li><strong>颜色：</strong><span id="color">深空灰</span></li>
+                        <li><strong>存储：</strong><span id="storage">128GB</span></li>
+                        <li><strong>库存：</strong><span id="stock">100件</span></li>
+                    </ul>
+                </div>
+                
+                <div class="product-quantity">
+                    <label for="quantity"><i class="fas fa-calculator"></i> 数量：</label>
+                    <div class="quantity-control">
+                        <button class="quantity-btn minus">-</button>
+                        <input type="number" id="quantity" value="1" min="1" max="100">
+                        <button class="quantity-btn plus">+</button>
+                    </div>
+                </div>
+                
+                <div class="product-actions">
+                    <button class="btn btn-add-to-cart" id="add-to-cart">
+                        <i class="fas fa-cart-plus"></i> 加入购物车
+                    </button>
+                    <button class="btn btn-buy-now">
+                        <i class="fas fa-bolt"></i> 立即购买
+                    </button>
+                    <button class="btn btn-favorite">
+                        <i class="far fa-heart"></i> 收藏
+                    </button>
+                </div>
+                
+                <div class="delivery-info">
+                    <h3><i class="fas fa-shipping-fast"></i> 配送信息</h3>
+                    <p>快递：免运费 | 预计2-5天送达</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="product-description">
+            <h2><i class="fas fa-file-alt"></i> 商品描述</h2>
+            <div class="description-content" id="product-description">
+                <p>这是一款高性能智能手机，采用最新的处理器技术，拥有出色的摄像头系统和长续航电池。</p>
+                <ul>
+                    <li>6.5英寸 Super AMOLED 显示屏</li>
+                    <li>后置三摄：4800万像素主摄像头</li>
+                    <li>5000mAh 大容量电池</li>
+                    <li>支持5G网络</li>
+                    <li>IP68级防水防尘</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2023 在线商城 - 大作业项目</p>
+            <p>学号：20230001 | 姓名：张三</p>
+        </div>
+    </footer>
+
+    <script src="js/cart.js"></script>
+    <script>
+        // 页面加载时从localStorage获取商品信息
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id') || '1';
+            
+            // 从localStorage获取商品数据
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            const product = products.find(p => p.id == productId);
+            
+            if (product) {
+                document.getElementById('detail-product-name').textContent = product.name;
+                document.getElementById('detail-price').textContent = '¥' + product.price.toFixed(2);
+                document.getElementById('brand').textContent = product.brand || 'XYZ';
+                document.getElementById('stock').textContent = product.stock + '件';
+                
+                // 设置添加到购物车按钮的事件
+                document.getElementById('add-to-cart').addEventListener('click', function() {
+                    const quantity = parseInt(document.getElementById('quantity').value);
+                    addToCart(productId, quantity);
+                    alert('已添加到购物车！');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
