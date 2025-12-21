@@ -1,735 +1,542 @@
-// 初始化商品数据
-function initializeProducts() {
+// ==================== 全局变量 ====================
+let searchTimeout;
+
+// ==================== 数据初始化 ====================
+function initializeData() {
     const defaultProducts = [
-        {
-            id: 1,
-            name: '智能手机 X1',
-            price: 2999.00,
-            brand: 'XYZ',
-            category: 'electronics',
-            stock: 100,
-            description: '高性能智能手机，6.5英寸屏幕，后置三摄像头'
-        },
-        {
-            id: 2,
-            name: '无线蓝牙耳机',
-            price: 399.00,
-            brand: 'SoundPlus',
-            category: 'electronics',
-            stock: 150,
-            description: '真无线蓝牙耳机，续航24小时'
-        },
-        {
-            id: 3,
-            name: '男士休闲衬衫',
-            price: 199.00,
-            brand: 'FashionWear',
-            category: 'clothing',
-            stock: 80,
-            description: '纯棉材质，舒适透气'
-        },
-        {
-            id: 4,
-            name: 'JavaScript高级程序设计',
-            price: 89.00,
-            brand: '人民邮电出版社',
-            category: 'books',
-            stock: 200,
-            description: '前端开发经典书籍'
-        },
-        {
-            id: 5,
-            name: '咖啡礼盒套装',
-            price: 159.00,
-            brand: 'CoffeeTime',
-            category: 'food',
-            stock: 60,
-            description: '精选咖啡豆，浓郁香醇'
-        }
+        { id: 1, name: '智能手机 X1', price: 2999, category: 'electronics', stock: 100, rating: 4.5, description: '高性能智能手机' },
+        { id: 2, name: '无线蓝牙耳机', price: 399, category: 'electronics', stock: 150, rating: 4.2, description: '真无线蓝牙耳机' },
+        { id: 3, name: '男士休闲衬衫', price: 199, category: 'clothing', stock: 80, rating: 4.0, description: '纯棉材质' },
+        { id: 4, name: 'JavaScript高级程序设计', price: 89, category: 'books', stock: 200, rating: 4.8, description: '前端经典书籍' },
+        { id: 5, name: '咖啡礼盒套装', price: 159, category: 'food', stock: 60, rating: 4.3, description: '精选咖啡豆' }
     ];
 
-    // 如果localStorage中没有商品数据，则存入默认数据
-    if (!localStorage.getItem('products')) {
-        localStorage.setItem('products', JSON.stringify(defaultProducts));
-    }
-    
-    // 初始化购物车
-    if (!localStorage.getItem('cart')) {
-        localStorage.setItem('cart', JSON.stringify([]));
-    }
+    if (!localStorage.getItem('products')) localStorage.setItem('products', JSON.stringify(defaultProducts));
+    if (!localStorage.getItem('cart')) localStorage.setItem('cart', JSON.stringify([]));
+    if (!localStorage.getItem('users')) localStorage.setItem('users', JSON.stringify([]));
 }
 
-// 显示商品列表
+// ==================== Ajax模拟 ====================
+function ajaxRequest(url, method = 'GET', data = null) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+
+            if (method === 'GET' && url === '/api/products') {
+                resolve({ success: true, data: products });
+            }
+            else if (method === 'POST' && url === '/api/search') {
+                const term = data.searchTerm.toLowerCase();
+                const results = products.filter(p => p.name.toLowerCase().includes(term));
+                resolve({ success: true, data: results, message: `找到${results.length}个商品` });
+            }
+            else {
+                reject({ success: false, message: '请求失败' });
+            }
+        }, 800);
+    });
+}
+
+// ==================== 商品展示 ====================
 function displayProducts(category = 'all') {
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const productGrid = document.getElementById('product-list');
-    
-    if (!productGrid) return;
-    
-    // 清空当前列表
-    productGrid.innerHTML = '';
-    
-    // 筛选商品
-    const filteredProducts = category === 'all' 
-        ? products 
-        : products.filter(p => p.category === category);
-    
-    // 生成商品卡片
-    filteredProducts.forEach(product => {
-        const productCard = document.createElement('div');
-        productCard.className = 'product-card';
-        productCard.innerHTML = `
+    const grid = document.getElementById('product-list');
+    if (!grid) return;
+
+    grid.innerHTML = '<div class="loading">加载中...</div>';
+
+    ajaxRequest('/api/products', 'GET')
+        .then(res => {
+            const products = res.data;
+            const filtered = category === 'all' ? products : products.filter(p => p.category === category);
+            renderProductGrid(filtered);
+            showNotification('商品加载完成', 'success');
+        })
+        .catch(err => grid.innerHTML = `<div class="error">${err.message}</div>`);
+}
+
+function renderProductGrid(products) {
+    const grid = document.getElementById('product-list');
+    if (!grid) return;
+
+    grid.innerHTML = products.map(p => `
+        <div class="product-card">
             <div class="product-image">
-                <img src="https://via.placeholder.com/250x200" alt="${product.name}">
+                <img src="https://via.placeholder.com/250x200" alt="${p.name}">
             </div>
             <div class="product-info">
-                <h3>${product.name}</h3>
-                <div class="product-rating">★★★★☆</div>
-                <div class="product-price">¥${product.price.toFixed(2)}</div>
-                <p>${product.description.substring(0, 50)}...</p>
+                <h3>${p.name}</h3>
+                <div class="product-rating">${generateStars(p.rating)}</div>
+                <div class="product-price">¥${p.price.toFixed(2)}</div>
+                <p>${p.description.substring(0, 50)}...</p>
                 <div class="product-actions">
-                    <button class="btn" onclick="addToCart(${product.id}, 1)">加入购物车</button>
-                    <a href="detail.html?id=${product.id}" class="btn" style="background-color: #6c757d;">查看详情</a>
+                    <button class="btn add-to-cart" data-id="${p.id}">
+                        <i class="fas fa-cart-plus"></i> 加入购物车
+                    </button>
+                    <a href="detail.html?id=${p.id}" class="btn btn-secondary">
+                        <i class="fas fa-eye"></i> 查看详情
+                    </a>
                 </div>
             </div>
-        `;
-        productGrid.appendChild(productCard);
-    });
-}
+        </div>
+    `).join('');
 
-// 添加到购物车
-function addToCart(productId, quantity = 1) {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-    
-    // 检查商品是否已在购物车
-    const existingItem = cart.find(item => item.id === productId);
-    
-    if (existingItem) {
-        existingItem.quantity += quantity;
-    } else {
-        cart.push({
-            id: productId,
-            name: product.name,
-            price: product.price,
-            quantity: quantity
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.addEventListener('click', function () {
+            addToCart(parseInt(this.getAttribute('data-id')));
         });
-    }
-    
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-}
-
-// 更新购物车数量显示
-function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    
-    const cartCountElements = document.querySelectorAll('.cart-count');
-    cartCountElements.forEach(el => {
-        el.textContent = totalItems;
     });
 }
 
-// 搜索功能
+// ==================== 搜索功能 ====================
 function setupSearch() {
     const searchInput = document.getElementById('search-input');
-    const searchBtn = document.getElementById('search-btn');
-    
-    if (searchInput && searchBtn) {
-        searchBtn.addEventListener('click', performSearch);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') performSearch();
-        });
-    }
-}
+    if (!searchInput) return;
 
-function performSearch() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const productGrid = document.getElementById('product-list');
-    
-    if (!productGrid) return;
-    
-    productGrid.innerHTML = '';
-    
-    const filteredProducts = products.filter(product => 
-        product.name.toLowerCase().includes(searchTerm) || 
-        product.description.toLowerCase().includes(searchTerm)
-    );
-    
-    if (filteredProducts.length === 0) {
-        productGrid.innerHTML = '<div class="no-results">没有找到相关商品</div>';
-        return;
-    }
-    
-    filteredProducts.forEach(product => {
-        const productCard = document.createElement('div');
-        productCard.className = 'product-card';
-        productCard.innerHTML = `
-            <div class="product-image">
-                <img src="https://via.placeholder.com/250x200" alt="${product.name}">
-            </div>
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <div class="product-price">¥${product.price.toFixed(2)}</div>
-                <p>${product.description.substring(0, 50)}...</p>
-                <button class="btn" onclick="addToCart(${product.id}, 1)">加入购物车</button>
-            </div>
-        `;
-        productGrid.appendChild(productCard);
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const term = this.value.trim();
+            if (!term) return displayProducts();
+
+            const grid = document.getElementById('product-list');
+            if (!grid) return;
+
+            grid.innerHTML = '<div class="loading">搜索中...</div>';
+
+            ajaxRequest('/api/search', 'POST', { searchTerm: term })
+                .then(res => {
+                    renderProductGrid(res.data);
+                    showNotification(res.message, 'success');
+                })
+                .catch(err => grid.innerHTML = `<div class="error">${err.message}</div>`);
+        }, 500);
     });
 }
 
-// 轮播图功能
+// ==================== 分类功能 ====================
+function setupCategories() {
+    document.querySelectorAll('.category').forEach(cat => {
+        cat.addEventListener('click', function () {
+            document.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            displayProducts(this.getAttribute('data-category'));
+        });
+    });
+}
+
+// ==================== 轮播图 ====================
 function setupCarousel() {
     const slides = document.querySelectorAll('.banner .slide');
     const dots = document.querySelectorAll('.banner .dot');
-    let currentSlide = 0;
-    let slideInterval;
-    
+    let currentIndex = 0;
+
     if (slides.length === 0) return;
-    
-    function showSlide(n) {
-        // 隐藏所有幻灯片
-        slides.forEach(slide => slide.classList.remove('active'));
-        dots.forEach(dot => dot.classList.remove('active'));
-        
-        // 计算当前幻灯片索引
-        currentSlide = (n + slides.length) % slides.length;
-        
-        // 显示当前幻灯片
-        slides[currentSlide].classList.add('active');
-        dots[currentSlide].classList.add('active');
+
+    function showSlide(index) {
+        slides.forEach(s => s.classList.remove('active'));
+        dots.forEach(d => d.classList.remove('active'));
+
+        currentIndex = (index + slides.length) % slides.length;
+        slides[currentIndex].classList.add('active');
+        dots[currentIndex].classList.add('active');
     }
-    
-    function nextSlide() {
-        showSlide(currentSlide + 1);
-    }
-    
-    // 为每个控制点添加点击事件
-    dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => {
-            clearInterval(slideInterval); // 暂停自动轮播
-            showSlide(index);
-            // 重新开始自动轮播
-            slideInterval = setInterval(nextSlide, 5000);
-        });
-    });
-    
-    // 自动轮播
-    function startAutoSlide() {
-        slideInterval = setInterval(nextSlide, 5000);
-    }
-    
-    // 当鼠标悬停在轮播图上时暂停自动轮播
-    const carousel = document.querySelector('.banner');
-    if (carousel) {
-        carousel.addEventListener('mouseenter', () => {
-            clearInterval(slideInterval);
-        });
-        
-        carousel.addEventListener('mouseleave', () => {
-            startAutoSlide();
-        });
-    }
-    
-    // 开始自动轮播
-    startAutoSlide();
+
+    dots.forEach((dot, idx) => dot.addEventListener('click', () => showSlide(idx)));
+    setInterval(() => showSlide(currentIndex + 1), 5000);
 }
 
-// 移除之前的复杂Ajax轮播图函数，直接使用上面的setupCarousel
+// ==================== 购物车功能 ====================
+function addToCart(productId, quantity = 1) {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+    const product = products.find(p => p.id === productId);
 
-// 页面加载完成后的初始化
-document.addEventListener('DOMContentLoaded', function() {
-    initializeProducts();
-    displayProducts();
+    if (!product) return;
+
+    const existing = cart.find(item => item.id === productId);
+    if (existing) {
+        existing.quantity += quantity;
+    } else {
+        cart.push({ id: productId, name: product.name, price: product.price, quantity });
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
-    setupSearch();
-    setupCarousel();
-    
-    // 商品分类点击事件
-    const categories = document.querySelectorAll('.category');
-    categories.forEach(category => {
-        category.addEventListener('click', function() {
-            const categoryType = this.getAttribute('data-category');
-            displayProducts(categoryType);
-        });
-    });
-});
-
-// 新增：Ajax模拟函数
-function ajaxRequest(url, method = 'GET', data = null) {
-    return new Promise((resolve, reject) => {
-        // 模拟网络延迟
-        setTimeout(() => {
-            if (method === 'GET' && url === '/api/products') {
-                // 模拟从服务器获取商品数据
-                const products = JSON.parse(localStorage.getItem('products')) || [];
-                resolve({
-                    success: true,
-                    data: products,
-                    message: '获取商品列表成功'
-                });
-            } 
-            else if (method === 'POST' && url === '/api/search') {
-                // 模拟搜索请求
-                const products = JSON.parse(localStorage.getItem('products')) || [];
-                const searchTerm = data.searchTerm.toLowerCase();
-                const results = products.filter(product => 
-                    product.name.toLowerCase().includes(searchTerm) || 
-                    product.description.toLowerCase().includes(searchTerm)
-                );
-                resolve({
-                    success: true,
-                    data: results,
-                    message: `找到${results.length}个相关商品`
-                });
-            }
-            else if (method === 'GET' && url.startsWith('/api/product/')) {
-                // 模拟获取单个商品详情
-                const productId = parseInt(url.split('/').pop());
-                const products = JSON.parse(localStorage.getItem('products')) || [];
-                const product = products.find(p => p.id === productId);
-                
-                if (product) {
-                    resolve({
-                        success: true,
-                        data: product,
-                        message: '获取商品详情成功'
-                    });
-                } else {
-                    reject({
-                        success: false,
-                        message: '商品不存在'
-                    });
-                }
-            }
-            else {
-                reject({
-                    success: false,
-                    message: '请求失败，请检查网络连接'
-                });
-            }
-        }, 800); // 800ms延迟，模拟网络请求
-    });
+    showNotification(`${product.name}已加入购物车`, 'success');
 }
 
-// 修改：使用Ajax获取商品列表
-function displayProductsWithAjax(category = 'all') {
-    const productGrid = document.getElementById('product-list');
-    
-    if (!productGrid) return;
-    
-    // 显示加载状态
-    productGrid.innerHTML = '<div class="loading">正在加载商品...</div>';
-    
-    // 使用Ajax获取数据
-    ajaxRequest('/api/products', 'GET')
-        .then(response => {
-            if (response.success) {
-                const products = response.data;
-                const filteredProducts = category === 'all' 
-                    ? products 
-                    : products.filter(p => p.category === category);
-                
-                renderProductGrid(filteredProducts);
-                showNotification('商品加载完成', 'success');
-            }
-        })
-        .catch(error => {
-            productGrid.innerHTML = `<div class="error">${error.message}</div>`;
-            showNotification('加载失败，请重试', 'error');
-        });
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+    document.querySelectorAll('.cart-count').forEach(el => el.textContent = total);
 }
 
-// 修改搜索功能，使用Ajax
-function performSearchWithAjax() {
-    const searchTerm = document.getElementById('search-input').value.trim();
-    const productGrid = document.getElementById('product-list');
-    
-    if (!searchTerm) {
-        displayProductsWithAjax();
+function displayCart() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const container = document.getElementById('cart-items');
+    const empty = document.getElementById('cart-empty');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (cart.length === 0) {
+        if (empty) empty.style.display = 'block';
+        updateCartSummary();
         return;
     }
-    
-    if (!productGrid) return;
-    
-    // 显示加载状态
-    productGrid.innerHTML = '<div class="loading">正在搜索...</div>';
-    
-    // 使用Ajax发送搜索请求
-    ajaxRequest('/api/search', 'POST', { searchTerm: searchTerm })
-        .then(response => {
-            if (response.success) {
-                renderProductGrid(response.data);
-                showNotification(response.message, 'success');
-            }
-        })
-        .catch(error => {
-            productGrid.innerHTML = `<div class="error">${error.message}</div>`;
-            showNotification('搜索失败', 'error');
-        });
-}
 
-// 辅助函数：渲染商品网格
-function renderProductGrid(products) {
-    const productGrid = document.getElementById('product-list');
-    
-    if (!productGrid) return;
-    
-    if (products.length === 0) {
-        productGrid.innerHTML = '<div class="no-results">没有找到相关商品</div>';
-        return;
-    }
-    
-    productGrid.innerHTML = '';
-    
-    products.forEach(product => {
-        const productCard = document.createElement('div');
-        productCard.className = 'product-card';
-        productCard.innerHTML = `
-            <div class="product-image">
-                <img src="https://via.placeholder.com/250x200" alt="${product.name}">
+    if (empty) empty.style.display = 'none';
+
+    cart.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+            <div class="cart-item-details">
+                <h3>${item.name}</h3>
+                <div>单价：¥${item.price.toFixed(2)}</div>
             </div>
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <div class="product-rating">★★★★☆</div>
-                <div class="product-price">¥${product.price.toFixed(2)}</div>
-                <p>${product.description.substring(0, 50)}...</p>
-                <div class="product-actions">
-                    <button class="btn add-to-cart-btn" data-id="${product.id}">加入购物车</button>
-                    <a href="detail.html?id=${product.id}" class="btn btn-secondary">查看详情</a>
-                </div>
+            <div class="cart-item-controls">
+                <button class="quantity-btn" data-id="${item.id}" data-change="-1">-</button>
+                <span>${item.quantity}</span>
+                <button class="quantity-btn" data-id="${item.id}" data-change="1">+</button>
+                <button class="btn" data-id="${item.id}">删除</button>
             </div>
+            <div>¥${(item.price * item.quantity).toFixed(2)}</div>
         `;
-        productGrid.appendChild(productCard);
+        container.appendChild(div);
     });
-    
-    // 为每个"加入购物车"按钮添加事件
-    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = parseInt(this.getAttribute('data-id'));
-            addToCart(productId, 1);
+
+    bindCartEvents();
+    updateCartSummary();
+}
+
+function bindCartEvents() {
+    document.querySelectorAll('.quantity-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = parseInt(this.getAttribute('data-id'));
+            const change = parseInt(this.getAttribute('data-change'));
+            updateCartQuantity(id, change);
+        });
+    });
+
+    document.querySelectorAll('.btn[data-id]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            removeFromCart(parseInt(this.getAttribute('data-id')));
         });
     });
 }
 
-// 新增：显示通知
-function showNotification(message, type = 'info') {
-    // 移除现有的通知
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
+function updateCartQuantity(productId, change) {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const item = cart.find(item => item.id === productId);
+
+    if (item) {
+        item.quantity += change;
+        if (item.quantity <= 0) {
+            removeFromCart(productId);
+        } else {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+            updateCartCount();
+        }
     }
-    
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <span>${message}</span>
-        <button class="close-notification">&times;</button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // 显示动画
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-    
-    // 自动隐藏
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }, 3000);
-    
-    // 点击关闭
-    notification.querySelector('.close-notification').addEventListener('click', () => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    });
 }
 
-// 修改：页面加载完成后的初始化
-document.addEventListener('DOMContentLoaded', function() {
-    initializeProducts();
-    displayProductsWithAjax(); // 使用Ajax版本
+function removeFromCart(productId) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart = cart.filter(item => item.id !== productId);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    displayCart();
     updateCartCount();
-    
-    // 修改搜索按钮事件
-    const searchInput = document.getElementById('search-input');
-    const searchBtn = document.getElementById('search-btn');
-    
-    if (searchInput && searchBtn) {
-        searchBtn.addEventListener('click', performSearchWithAjax);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') performSearchWithAjax();
-        });
-    }
-    
-    // 商品分类点击事件
-    const categories = document.querySelectorAll('.category');
-    categories.forEach(category => {
-        category.addEventListener('click', function() {
-            const categoryType = this.getAttribute('data-category');
-            displayProductsWithAjax(categoryType);
-        });
-    });
-    
-    setupCarousel();
-});
-
-
-// 更新轮播图显示
-function updateCarouselWithAjax() {
-    const carouselContainer = document.querySelector('.banner .slides');
-    const dotsContainer = document.querySelector('.banner .slide-controls');
-    
-    if (!carouselContainer || !dotsContainer) return;
-    
-    // 显示加载状态
-    carouselContainer.innerHTML = '<div class="loading">正在加载轮播图...</div>';
-    
-    loadCarouselWithAjax()
-        .then(response => {
-            if (response.success) {
-                renderCarousel(response.data);
-                setupCarousel(); // 初始化轮播图交互
-                showNotification('轮播图加载完成', 'success');
-            }
-        })
-        .catch(error => {
-            carouselContainer.innerHTML = `<div class="error">轮播图加载失败</div>`;
-            showNotification('轮播图加载失败，将显示默认内容', 'error');
-            // 加载默认轮播图
-            setupCarousel();
-        });
+    showNotification('商品已移除', 'success');
 }
 
-// 渲染轮播图
-function renderCarousel(carouselData) {
-    const carouselContainer = document.querySelector('.banner .slides');
-    const dotsContainer = document.querySelector('.banner .slide-controls');
-    
-    if (!carouselContainer || !dotsContainer) return;
-    
-    // 清空内容
-    carouselContainer.innerHTML = '';
-    dotsContainer.innerHTML = '';
-    
-    // 生成轮播图
-    carouselData.forEach((item, index) => {
-        const slide = document.createElement('div');
-        slide.className = `slide ${index === 0 ? 'active' : ''}`;
-        slide.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${item.image}')`;
-        slide.innerHTML = `
-            <div class="slide-content">
-                <h2>${item.title}</h2>
-                <p>${item.description}</p>
-                <a href="${item.link}" class="btn">立即查看</a>
-            </div>
-        `;
-        carouselContainer.appendChild(slide);
-        
-        // 生成控制点
-        const dot = document.createElement('span');
-        dot.className = `dot ${index === 0 ? 'active' : ''}`;
-        dotsContainer.appendChild(dot);
+function updateCartSummary() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = subtotal > 0 ? 15 : 0;
+    const discount = subtotal > 500 ? 50 : 0;
+    const total = subtotal + shipping - discount;
+
+    ['subtotal', 'shipping', 'discount', 'total'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = `¥${eval(id).toFixed(2)}`;
     });
 }
 
-// 搜索防抖功能（防止频繁请求）
-let searchTimeout;
-function setupSearchWithDebounce() {
-    const searchInput = document.getElementById('search-input');
-    const searchBtn = document.getElementById('search-btn');
-    
-    if (!searchInput) return;
-    
-    // 实时搜索（防抖）
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        
-        // 如果输入框为空，显示所有商品
-        if (this.value.trim() === '') {
-            displayProductsWithAjax();
+function setupCheckout() {
+    const btn = document.getElementById('checkout-btn');
+    if (!btn) return;
+
+    btn.addEventListener('click', function () {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+
+        if (cart.length === 0) {
+            showNotification('购物车为空', 'error');
             return;
         }
-        
-        searchTimeout = setTimeout(() => {
-            performSearchWithAjax();
-        }, 500); // 500ms延迟
+
+        if (!user) {
+            showNotification('请先登录', 'error');
+            setTimeout(() => location.href = 'login.html', 1500);
+            return;
+        }
+
+        // 模拟Ajax
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+
+        setTimeout(() => {
+            const order = {
+                id: Date.now(),
+                items: cart,
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                date: new Date().toLocaleString()
+            };
+
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            localStorage.setItem('cart', JSON.stringify([]));
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> 去结算';
+
+            showNotification(`订单#${order.id}创建成功`, 'success');
+            setTimeout(() => {
+                displayCart();
+                updateCartCount();
+                setTimeout(() => location.href = 'user.html', 1000);
+            }, 500);
+        }, 1500);
     });
-    
-    // 按钮点击搜索
-    if (searchBtn) {
-        searchBtn.addEventListener('click', performSearchWithAjax);
-    }
-    
-    // Enter键搜索
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            performSearchWithAjax();
+}
+
+// ==================== 用户认证 ====================
+function setupRegister() {
+    const form = document.getElementById('register-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById('reg-username').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const password = document.getElementById('reg-password').value;
+        const confirmPassword = document.getElementById('reg-confirm-password').value;
+
+        // 表单验证
+        const errors = [];
+        if (username.length < 3) errors.push('用户名至少3位');
+        if (!isValidEmail(email)) errors.push('邮箱格式不正确');
+        if (password.length < 6) errors.push('密码至少6位');
+        if (password !== confirmPassword) errors.push('两次密码不一致');
+
+        if (errors.length > 0) {
+            errors.forEach(error => showNotification(error, 'error'));
+            return;
+        }
+
+        // 检查用户是否存在
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        if (users.some(u => u.username === username)) {
+            showNotification('用户名已存在', 'error');
+            return;
+        }
+        if (users.some(u => u.email === email)) {
+            showNotification('邮箱已注册', 'error');
+            return;
+        }
+
+        // 创建用户
+        const user = {
+            id: Date.now(),
+            username,
+            email,
+            password,
+            registerDate: new Date().toLocaleString(),
+            level: '普通会员'
+        };
+
+        users.push(user);
+        localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('currentUser', JSON.stringify(user));
+
+        showNotification('注册成功，已自动登录', 'success');
+        setTimeout(() => location.href = 'index.html', 1500);
+    });
+}
+
+function setupLogin() {
+    const form = document.getElementById('login-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const user = users.find(u =>
+            (u.username === username || u.email === username) &&
+            u.password === password
+        );
+
+        if (user) {
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            showNotification('登录成功', 'success');
+            setTimeout(() => location.href = 'index.html', 1500);
+        } else {
+            showNotification('用户名或密码错误', 'error');
         }
     });
 }
 
-// 分类筛选功能
-function setupCategoryFilter() {
-    const categories = document.querySelectorAll('.category');
-    
-    categories.forEach(category => {
-        category.addEventListener('click', function() {
-            // 移除其他分类的active状态
-            categories.forEach(cat => cat.classList.remove('active'));
-            
-            // 添加当前分类的active状态
-            this.classList.add('active');
-            
-            const categoryType = this.getAttribute('data-category');
-            filterProductsByCategory(categoryType);
-        });
+function updateLoginStatus() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+
+    if (user && loginBtn) {
+        loginBtn.innerHTML = `<i class="fas fa-user"></i> ${user.username}`;
+        loginBtn.href = 'user.html';
+        if (registerBtn) registerBtn.style.display = 'none';
+    }
+}
+
+function setupLogout() {
+    const logoutBtn = document.getElementById('logout-btn');
+    if (!logoutBtn) return;
+
+    logoutBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        localStorage.removeItem('currentUser');
+        showNotification('已退出登录', 'success');
+        setTimeout(() => location.href = 'index.html', 1500);
     });
 }
 
-// Ajax分类筛选
-function filterProductsByCategory(category) {
-    const productGrid = document.getElementById('product-list');
-    if (!productGrid) return;
-    
-    // 显示加载状态
-    productGrid.innerHTML = '<div class="loading">正在筛选商品...</div>';
-    
-    // 模拟Ajax请求
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// ==================== 工具函数 ====================
+function generateStars(rating) {
+    let html = '';
+    for (let i = 0; i < 5; i++) {
+        html += i < rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+    }
+    return html;
+}
+
+function showNotification(msg, type = 'info') {
+    const div = document.createElement('div');
+    div.className = `notification notification-${type}`;
+    div.innerHTML = `<span>${msg}</span><button>&times;</button>`;
+
+    document.body.appendChild(div);
+
+    setTimeout(() => div.classList.add('show'), 10);
+
     setTimeout(() => {
-        ajaxRequest('/api/products', 'GET')
-            .then(response => {
-                if (response.success) {
-                    const allProducts = response.data;
-                    const filteredProducts = category === 'all' 
-                        ? allProducts 
-                        : allProducts.filter(p => p.category === category);
-                    
-                    renderProductGrid(filteredProducts);
-                    
-                    // 显示筛选结果提示
-                    const categoryNames = {
-                        'electronics': '电子产品',
-                        'clothing': '服装服饰',
-                        'books': '图书音像',
-                        'food': '食品饮料',
-                        'all': '全部'
-                    };
-                    
-                    showNotification(`已显示${categoryNames[category] || category}类商品`, 'info');
-                }
-            })
-            .catch(error => {
-                productGrid.innerHTML = `<div class="error">筛选失败：${error.message}</div>`;
+        div.classList.remove('show');
+        setTimeout(() => div.remove(), 300);
+    }, 3000);
+
+    div.querySelector('button').addEventListener('click', () => div.remove());
+}
+
+// ==================== 页面初始化 ====================
+document.addEventListener('DOMContentLoaded', function () {
+    initializeData();
+    updateCartCount();
+    updateLoginStatus();
+
+    const path = window.location.pathname;
+
+    if (path.includes('cart.html')) {
+        displayCart();
+        setupCheckout();
+    } else if (path.includes('index.html') || path === '/') {
+        displayProducts();
+        setupSearch();
+        setupCategories();
+        setupCarousel();
+    } else if (path.includes('detail.html')) {
+        setupProductDetail();
+    } else if (path.includes('user.html')) {
+        setupUserProfile();
+        setupLogout();
+    } else if (path.includes('login.html')) {
+        setupLogin();
+    } else if (path.includes('register.html')) {
+        setupRegister();
+    }
+
+    showStudentInfo();
+});
+
+// 商品详情页初始化
+function setupProductDetail() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id') || '1';
+
+    setTimeout(() => {
+        const products = JSON.parse(localStorage.getItem('products')) || [];
+        const product = products.find(p => p.id == productId);
+
+        if (product) {
+            const elements = {
+                'detail-product-name': product.name,
+                'detail-price': '¥' + product.price.toFixed(2),
+                'brand': product.brand || 'XYZ',
+                'stock': product.stock + '件'
+            };
+
+            Object.keys(elements).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = elements[id];
             });
+
+            document.getElementById('add-to-cart')?.addEventListener('click', function () {
+                const quantity = parseInt(document.getElementById('quantity')?.value || 1);
+                addToCart(productId, quantity);
+                showNotification('已添加到购物车！', 'success');
+            });
+        }
     }, 800);
 }
 
-// 搜索历史功能
-function setupSearchHistory() {
-    const searchInput = document.getElementById('search-input');
-    const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
-    
-    // 显示搜索历史
-    const showSearchHistory = () => {
-        const historyContainer = document.getElementById('search-history');
-        if (!historyContainer || searchHistory.length === 0) return;
-        
-        historyContainer.innerHTML = `
-            <div class="search-history-title">
-                <span>搜索历史</span>
-                <button onclick="clearSearchHistory()">清空</button>
-            </div>
-            <div class="search-history-items">
-                ${searchHistory.slice(0, 5).map(item => `
-                    <span class="history-item" onclick="searchFromHistory('${item}')">${item}</span>
-                `).join('')}
-            </div>
-        `;
-    };
-    
-    // 保存搜索历史
-    const saveToSearchHistory = (keyword) => {
-        if (!keyword.trim()) return;
-        
-        // 移除重复的关键词
-        const filteredHistory = searchHistory.filter(item => item !== keyword);
-        
-        // 添加到最前面
-        filteredHistory.unshift(keyword);
-        
-        // 最多保存10个
-        if (filteredHistory.length > 10) {
-            filteredHistory.pop();
-        }
-        
-        localStorage.setItem('searchHistory', JSON.stringify(filteredHistory));
-        showSearchHistory();
-    };
-    
-    // 搜索框中显示历史
-    searchInput.addEventListener('focus', showSearchHistory);
-    
-    // 点击其他地方隐藏历史
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-box')) {
-            const historyContainer = document.getElementById('search-history');
-            if (historyContainer) {
-                historyContainer.innerHTML = '';
-            }
-        }
-    });
-    
-    // 修改搜索函数，保存历史
-    const originalSearch = performSearchWithAjax;
-    window.performSearchWithAjax = function() {
-        const keyword = searchInput.value.trim();
-        if (keyword) {
-            saveToSearchHistory(keyword);
-        }
-        originalSearch();
-    };
-}
+// 用户个人中心初始化
+function setupUserProfile() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
 
-// 从历史记录搜索
-function searchFromHistory(keyword) {
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        searchInput.value = keyword;
-        performSearchWithAjax();
+    if (user) {
+        const elements = {
+            'user-name': user.username,
+            'user-email': user.email,
+            'info-username': user.username,
+            'info-email': user.email,
+            'info-reg-date': user.registerDate,
+            'info-level': user.level
+        };
+
+        Object.keys(elements).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = elements[id];
+        });
     }
 }
 
-// 清空搜索历史
-function clearSearchHistory() {
-    localStorage.removeItem('searchHistory');
-    const historyContainer = document.getElementById('search-history');
-    if (historyContainer) {
-        historyContainer.innerHTML = '';
+// 显示学号姓名
+function showStudentInfo() {
+    if (!document.querySelector('.student-info')) {
+        const info = document.createElement('div');
+        info.className = 'student-info';
+        info.textContent = '学号：25216950414 | 姓名：陈庆炜';
+        document.body.appendChild(info);
     }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    initializeProducts();
-    displayProductsWithAjax(); // 商品列表
-    updateCartCount();
-    setupSearchWithDebounce(); // 搜索功能
-    setupCategoryFilter(); // 分类功能
-    setupCarousel(); // 轮播图功能 - 现在直接调用
-});

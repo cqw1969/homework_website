@@ -13,11 +13,11 @@
         <div class="container">
             <div class="logo">
                 <h1><i class="fas fa-shopping-bag"></i> 在线商城</h1>
-                <div class="student-info">学号：20230001 | 姓名：张三</div>
+                <div class="student-info">学号：25216950414 | 姓名：陈庆炜</div>
             </div>
             <nav class="navbar">
                 <a href="index.html"><i class="fas fa-home"></i> 首页</a>
-                <a href="cart.html"><i class="fas fa-shopping-cart"></i> 购物车</a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i> 购物车 <span class="cart-count">0</span></a>
                 <a href="user.html" class="active"><i class="fas fa-user"></i> 个人中心</a>
                 <a href="login.html" id="login-btn"><i class="fas fa-sign-in-alt"></i> 登录</a>
             </nav>
@@ -60,11 +60,11 @@
                     </div>
                     <div class="info-item">
                         <label>注册时间</label>
-                        <p id="info-reg-date">2023-11-01</p>
+                        <p id="info-reg-date">未登录</p>
                     </div>
                     <div class="info-item">
                         <label>会员等级</label>
-                        <p id="info-level">普通会员</p>
+                        <p id="info-level">未登录</p>
                     </div>
                 </div>
                 <button class="btn btn-edit"><i class="fas fa-edit"></i> 编辑资料</button>
@@ -100,35 +100,11 @@
     <!-- 页脚 -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2023 在线商城 - 大作业项目</p>
-            <p>学号：20230001 | 姓名：张三</p>
+            <p>&copy; 在线商城 - 大作业项目</p>
+            <p>学号：25216950414 | 姓名：陈庆炜</p>
         </div>
     </footer>
 
-    <script src="js/auth.js"></script>
-    <script>
-        // 检查登录状态
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            
-            if (currentUser) {
-                document.getElementById('user-name').textContent = currentUser.username;
-                document.getElementById('user-email').textContent = currentUser.email;
-                document.getElementById('info-username').textContent = currentUser.username;
-                document.getElementById('info-email').textContent = currentUser.email;
-                document.getElementById('login-btn').style.display = 'none';
-            } else {
-                document.getElementById('logout-btn').style.display = 'none';
-            }
-            
-            // 退出登录
-            document.getElementById('logout-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                localStorage.removeItem('currentUser');
-                alert('已退出登录');
-                window.location.href = 'index.html';
-            });
-        });
-    </script>
+    <script src="js/main.js"></script>
 </body>
 </html>
