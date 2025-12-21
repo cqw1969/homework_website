@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +8,9 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
-    <!-- 顶部导航栏 -->
+    <!-- 顶部导航栏 - 包含搜索框 -->
     <header class="header">
         <div class="container">
             <div class="logo">
@@ -17,46 +19,57 @@
             </div>
             <nav class="navbar">
                 <a href="index.html" class="active"><i class="fas fa-home"></i> 首页</a>
-                <a href="cart.html"><i class="fas fa-shopping-cart"></i> 购物车</a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i> 购物车 <span class="cart-count">0</span></a>
                 <a href="user.html"><i class="fas fa-user"></i> 个人中心</a>
                 <a href="login.html" id="login-btn"><i class="fas fa-sign-in-alt"></i> 登录</a>
-                <a href="register.html" id="register-btn"><i class="fas fa-user-plus"></i> 注册</a>
             </nav>
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="搜索商品...">
-                <button id="search-btn"><i class="fas fa-search"></i></button>
+                <button id="search-btn"><i class="fas fa-search"></i> 搜索</button>
             </div>
+            <div class="search-history" id="search-history"></div>
         </div>
     </header>
 
+    <!-- 轮播图 - Ajax加载 -->
     <!-- 轮播图 -->
-    <section class="banner">
-        <div class="slides">
-            <div class="slide active">
-                <div class="slide-content">
-                    <h2>夏季大促</h2>
-                    <p>全场商品5折起</p>
-                    <a href="#" class="btn">立即购买</a>
-                </div>
-            </div>
-            <div class="slide">
-                <div class="slide-content">
-                    <h2>新品上市</h2>
-                    <p>最新科技产品</p>
-                    <a href="#" class="btn">查看详情</a>
-                </div>
+<section class="banner" id="carousel-container">
+    <!-- 默认轮播图（如果Ajax加载失败则显示） -->
+    <div class="slides">
+        <div class="slide active" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80');">
+            <div class="slide-content">
+                <h2>夏季大促</h2>
+                <p>全场商品5折起，限时抢购</p>
+                <a href="#" class="btn">立即抢购</a>
             </div>
         </div>
-        <div class="slide-controls">
-            <span class="dot active"></span>
-            <span class="dot"></span>
+        <div class="slide" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80');">
+            <div class="slide-content">
+                <h2>新品上市</h2>
+                <p>最新科技产品，抢先体验</p>
+                <a href="#" class="btn">查看详情</a>
+            </div>
         </div>
-    </section>
+        <div class="slide" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80');">
+            <div class="slide-content">
+                <h2>会员专享</h2>
+                <p>注册会员，享受更多优惠</p>
+                <a href="register.html" class="btn">立即注册</a>
+            </div>
+        </div>
+    </div>
+    <div class="slide-controls">
+        <span class="dot active"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+    </div>
+</section>
 
-    <!-- 商品分类 -->
+    <!-- 商品分类 - Ajax筛选 -->
     <section class="categories container">
         <h2><i class="fas fa-list"></i> 商品分类</h2>
         <div class="category-list">
+            <div class="category active" data-category="all">全部商品</div>
             <div class="category" data-category="electronics">电子产品</div>
             <div class="category" data-category="clothing">服装服饰</div>
             <div class="category" data-category="books">图书音像</div>
@@ -64,11 +77,12 @@
         </div>
     </section>
 
-    <!-- 商品列表 -->
+    <!-- 商品列表 - Ajax加载 -->
     <main class="container">
         <h2><i class="fas fa-star"></i> 推荐商品</h2>
         <div class="product-grid" id="product-list">
-            <!-- 商品将通过JS动态加载 -->
+            <!-- Ajax加载商品 -->
+            <div class="loading">正在加载商品...</div>
         </div>
     </main>
 
@@ -88,4 +102,5 @@
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
 </body>
+
 </html>

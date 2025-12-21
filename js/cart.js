@@ -149,3 +149,79 @@ document.addEventListener('DOMContentLoaded', function() {
         setupCheckout();
     }
 });
+
+// 修改：使用Ajax模拟结算
+function setupCheckoutWithAjax() {
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (cart.length === 0) {
+                showNotification('购物车为空，无法结算', 'error');
+                return;
+            }
+            
+            if (!currentUser) {
+                showNotification('请先登录再结算', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+            
+            // 显示加载状态
+            checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+            checkoutBtn.disabled = true;
+            
+            // 模拟Ajax请求
+            setTimeout(() => {
+                // 创建订单
+                const order = {
+                    id: Date.now(),
+                    userId: currentUser.id,
+                    items: cart,
+                    total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                    date: new Date().toISOString(),
+                    status: '待付款'
+                };
+                
+                // 保存订单
+                const orders = JSON.parse(localStorage.getItem('orders')) || [];
+                orders.push(order);
+                localStorage.setItem('orders', JSON.stringify(orders));
+                
+                // 清空购物车
+                localStorage.setItem('cart', JSON.stringify([]));
+                
+                // 恢复按钮状态
+                checkoutBtn.innerHTML = '<i class="fas fa-credit-card"></i> 去结算';
+                checkoutBtn.disabled = false;
+                
+                // 显示成功消息
+                showNotification(`订单创建成功！订单号：${order.id}`, 'success');
+                
+                // 更新购物车显示
+                setTimeout(() => {
+                    displayCart();
+                    updateCartCount();
+                }, 1000);
+                
+                // 3秒后跳转到用户中心
+                setTimeout(() => {
+                    window.location.href = 'user.html';
+                }, 3000);
+                
+            }, 1500); // 模拟网络延迟
+        });
+    }
+}
+
+// 修改：页面加载时初始化购物车
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.pathname.includes('cart.html')) {
+        displayCart();
+        setupCheckoutWithAjax(); // 使用Ajax版本
+    }
+});
