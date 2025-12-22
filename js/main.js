@@ -4,11 +4,11 @@ let searchTimeout;
 // ==================== 数据初始化 ====================
 function initializeData() {
     const defaultProducts = [
-        { id: 1, name: '智能手机 X1', price: 2999, category: 'electronics', stock: 100, rating: 4.5, description: '高性能智能手机' },
-        { id: 2, name: '无线蓝牙耳机', price: 399, category: 'electronics', stock: 150, rating: 4.2, description: '真无线蓝牙耳机' },
-        { id: 3, name: '男士休闲衬衫', price: 199, category: 'clothing', stock: 80, rating: 4.0, description: '纯棉材质' },
-        { id: 4, name: 'JavaScript高级程序设计', price: 89, category: 'books', stock: 200, rating: 4.8, description: '前端经典书籍' },
-        { id: 5, name: '咖啡礼盒套装', price: 159, category: 'food', stock: 60, rating: 4.3, description: '精选咖啡豆' }
+        { id: 1, name: '智能手机 X1', price: 2999, category: 'electronics', stock: 100, rating: 4.5, description: '高性能智能手机', image: '/images/phone.png' },
+        { id: 2, name: '无线蓝牙耳机', price: 399, category: 'electronics', stock: 150, rating: 4.2, description: '真无线蓝牙耳机', image: '/images/headphones.png' },
+        { id: 3, name: '男士休闲衬衫', price: 199, category: 'clothing', stock: 80, rating: 4.0, description: '纯棉材质', image: '/images/shirt.png' },
+        { id: 4, name: 'JavaScript高级程序设计', price: 89, category: 'books', stock: 200, rating: 4.8, description: '前端经典书籍', image: '/images/book.png' },
+        { id: 5, name: '咖啡礼盒套装', price: 159, category: 'food', stock: 60, rating: 4.3, description: '精选咖啡豆', image: '/images/coffee.png' },
     ];
 
     if (!localStorage.getItem('products')) localStorage.setItem('products', JSON.stringify(defaultProducts));
@@ -58,10 +58,16 @@ function renderProductGrid(products) {
     const grid = document.getElementById('product-list');
     if (!grid) return;
 
+    // 调试：查看商品数据中的图片路径
+    console.log('商品数据：', products);
+    products.forEach(p => {
+        console.log(`商品 ${p.name}: 图片路径 = ${p.image}`);
+    });
+
     grid.innerHTML = products.map(p => `
         <div class="product-card">
             <div class="product-image">
-                <img src="https://via.placeholder.com/250x200" alt="${p.name}">
+                <img src="${p.image || 'images/default.png'}" alt="${p.name}">
             </div>
             <div class="product-info">
                 <h3>${p.name}</h3>
@@ -188,10 +194,18 @@ function displayCart() {
 
     if (empty) empty.style.display = 'none';
 
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+
     cart.forEach(item => {
+        const product = products.find(p => p.id === item.id);
+        const productImage = product ? (product.image || 'images/default.png') : 'images/default.png';
+
         const div = document.createElement('div');
         div.className = 'cart-item';
         div.innerHTML = `
+            <div class="cart-item-image">
+                <img src="${productImage}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
+            </div>
             <div class="cart-item-details">
                 <h3>${item.name}</h3>
                 <div>单价：¥${item.price.toFixed(2)}</div>
@@ -202,7 +216,9 @@ function displayCart() {
                 <button class="quantity-btn" data-id="${item.id}" data-change="1">+</button>
                 <button class="btn" data-id="${item.id}">删除</button>
             </div>
-            <div>¥${(item.price * item.quantity).toFixed(2)}</div>
+            <div class="cart-item-total">
+                ¥${(item.price * item.quantity).toFixed(2)}
+            </div>
         `;
         container.appendChild(div);
     });
@@ -489,11 +505,18 @@ function setupProductDetail() {
         const product = products.find(p => p.id == productId);
 
         if (product) {
+            // 设置商品图片
+            const mainImg = document.getElementById('main-img');
+            if (mainImg && product.image) {
+                mainImg.src = product.image;
+            }
+
             const elements = {
                 'detail-product-name': product.name,
                 'detail-price': '¥' + product.price.toFixed(2),
                 'brand': product.brand || 'XYZ',
-                'stock': product.stock + '件'
+                'stock': product.stock + '件',
+                'category': getCategoryName(product.category)
             };
 
             Object.keys(elements).forEach(id => {
@@ -501,6 +524,34 @@ function setupProductDetail() {
                 if (el) el.textContent = elements[id];
             });
 
+            // 设置商品描述
+            const descEl = document.getElementById('product-description');
+            if (descEl) {
+                descEl.innerHTML = `<p>${product.description}</p>`;
+            }
+
+            // 绑定数量按钮事件
+            const minusBtn = document.querySelector('.quantity-btn.minus');
+            const plusBtn = document.querySelector('.quantity-btn.plus');
+            const quantityInput = document.getElementById('quantity');
+
+            if (minusBtn && plusBtn && quantityInput) {
+                minusBtn.addEventListener('click', function () {
+                    let quantity = parseInt(quantityInput.value);
+                    if (quantity > 1) {
+                        quantityInput.value = quantity - 1;
+                    }
+                });
+
+                plusBtn.addEventListener('click', function () {
+                    let quantity = parseInt(quantityInput.value);
+                    if (quantity < 100) {
+                        quantityInput.value = quantity + 1;
+                    }
+                });
+            }
+
+            // 绑定加入购物车按钮
             document.getElementById('add-to-cart')?.addEventListener('click', function () {
                 const quantity = parseInt(document.getElementById('quantity')?.value || 1);
                 addToCart(productId, quantity);
@@ -508,6 +559,17 @@ function setupProductDetail() {
             });
         }
     }, 800);
+}
+
+// 添加这个辅助函数
+function getCategoryName(category) {
+    const categoryNames = {
+        'electronics': '电子产品',
+        'clothing': '服装服饰',
+        'books': '图书音像',
+        'food': '食品饮料'
+    };
+    return categoryNames[category] || category;
 }
 
 // 用户个人中心初始化
